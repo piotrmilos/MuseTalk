@@ -57,7 +57,7 @@ def main(cfg):
         timeout=timedelta(seconds=5400))
     accelerator = Accelerator(
         gradient_accumulation_steps=cfg.solver.gradient_accumulation_steps,
-        log_with=["tensorboard", LoggerType.TENSORBOARD],
+        log_with=["tensorboard", LoggerType.TENSORBOARD, 'wandb'], # need to WANDB_API_KEY
         project_dir=os.path.join(save_dir, "./tensorboard"),
         kwargs_handlers=[kwargs, process_group_kwargs],
     )

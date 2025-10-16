@@ -300,7 +300,7 @@ def main(cfg):
     os.makedirs(os.path.dirname(cfg.video_clip_file_list_val), exist_ok=True)
 
     vid_list = os.listdir(cfg.video_root_raw)
-    sorted_vid_list = sorted(vid_list)
+    sorted_vid_list = sorted(vid_list)[:int(cfg.number_to_process)]
  
     # Save video file list
     with open(cfg.video_file_list, 'w') as file:
@@ -311,7 +311,7 @@ def main(cfg):
     convert_video(cfg.video_root_raw, cfg.video_root_25fps, sorted_vid_list)
     
     # 2. Segment videos into 30-second clips
-    segment_video(cfg.video_root_25fps, cfg.video_audio_clip_root, vid_list, segment_duration=cfg.clip_len_second)
+    segment_video(cfg.video_root_25fps, cfg.video_audio_clip_root, sorted_vid_list, segment_duration=cfg.clip_len_second)
     
     # 3. Extract audio
     clip_vid_list = os.listdir(cfg.video_audio_clip_root)

@@ -1,0 +1,24 @@
+compute_environment: LOCAL_MACHINE
+debug: True
+# DeepSpeed configuration is removed as we are running in a single-process mode.
+# deepspeed_config:
+#   offload_optimizer_device: none
+#   offload_param_device: none
+#   zero3_init_flag: False
+#   zero_stage: 2
+distributed_type: NO # Set to NO for a single-process, non-distributed run.
+downcast_bf16: 'no'
+gpu_ids: "0" # Specify the single GPU to use.
+machine_rank: 0
+main_training_function: main
+num_machines: 1
+num_processes: 1 # Ensure this matches the single GPU.
+rdzv_backend: static
+same_network: true
+tpu_env: []
+tpu_use_cluster: false
+tpu_use_sudo: false
+use_cpu: false
+
+# Optional: Add mixed precision for potential speedup and reduced memory usage on A100s.
+# mixed_precision: "fp16"

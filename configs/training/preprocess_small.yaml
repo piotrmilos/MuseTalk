@@ -1,6 +1,6 @@
 clip_len_second: 30 # the length of the video clip
 video_root_raw: "./dataset/HDTF/source/videos" # the path of the original video
-number_to_process: 10_000_000 #=infty 
+number_to_process: 2
 
 val_list_hdtf:
   - RD_Radio7_000
