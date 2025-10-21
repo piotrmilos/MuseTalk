@@ -18,7 +18,10 @@ unzip -o dataset/HDTF/source/audios_tiny.zip -d dataset/HDTF/source/
 unzip -o dataset/HDTF/source/poses.zip -d dataset/HDTF/source/
 unzip -o dataset/HDTF/source/videos.zip -d dataset/HDTF/source/
 /opt/conda/envs/MuseTalk/bin/python -m scripts.preprocess --config ./configs/training/preprocess_small.yaml
-/opt/conda/envs/MuseTalk/bin/accelerate launch --config_file ./configs/training/gpu_3.yaml --main_process_port 29502 train.py --config ./configs/training/stage1.yaml
+/opt/conda/envs/MuseTalk/bin/accelerate launch --config_file ./configs/training/gpu_3.yaml --main_process_port 29502 train.py --config ./configs/training/stage1.yaml 
+/opt/conda/envs/MuseTalk/bin/accelerate launch --config_file ./configs/training/gpu_3.yaml --main_process_port 29502 train.py --config ./configs/training/stage1.yaml >error_list.txt
 
 # probably instal tracker as well pip install wandb weave
 # /opt/conda/envs/MuseTalk/bin/accelerate launch --config_file ./configs/training/gpu_3.yaml --main_process_port 29502 train.py --config ./configs/training/stage1.yaml
+
+/opt/conda/bin/npx https://github.com/google-gemini/gemini-cli
