@@ -19,6 +19,38 @@ from musetalk.utils.audio_utils import ensure_wav
 
 syncnet_mel_step_size = math.ceil(16 / 5 * 16)  # latentsync
 
+def get_syncnet_input(video_path):
+    """Get SyncNet input features
+    
+    Args:
+        video_path: Video file path
+        
+    Returns:
+        ndarray: SyncNet input features
+    """
+    cache_path = os.path.splitext(video_path)[0] + ".npy"
+    if os.path.exists(cache_path):
+        # print('loading from cache')
+        try:
+            original_mel_T = np.load(cache_path)
+            if original_mel_T is not None:
+                return original_mel_T
+        except Exception as e:
+            print(f"Failed to load cache file {cache_path}: {e}")
+
+    # print('video_path:', video_path)
+    ar = AudioReader(video_path, sample_rate=16000)
+    original_mel = audio.melspectrogram(ar[:].asnumpy().squeeze(0))
+    original_mel_T = original_mel.T
+    
+    # print('saving to cache')
+    try:
+        np.save(cache_path, original_mel_T)
+    except Exception as e:
+        print(f"Failed to save cache file {cache_path}: {e}")
+
+    return original_mel_T
+
 
 class FaceDataset(Dataset):
     """Dataset class for loading and processing video data
@@ -242,18 +274,18 @@ class FaceDataset(Dataset):
         end_idx = start_idx + syncnet_mel_step_size
         return spec[start_idx: end_idx, :]
 
-    def get_syncnet_input(self, video_path):
-        """Get SyncNet input features
+    # def get_syncnet_input(self, video_path):
+    #     """Get SyncNet input features
         
-        Args:
-            video_path: Video file path
+    #     Args:
+    #         video_path: Video file path
             
-        Returns:
-            ndarray: SyncNet input features
-        """
-        ar = AudioReader(video_path, sample_rate=16000)
-        original_mel = audio.melspectrogram(ar[:].asnumpy().squeeze(0))
-        return original_mel.T
+    #     Returns:
+    #         ndarray: SyncNet input features
+    #     """
+    #     ar = AudioReader(video_path, sample_rate=16000)
+    #     original_mel = audio.melspectrogram(ar[:].asnumpy().squeeze(0))
+    #     return original_mel.T
 
     def get_resized_mouth_mask(
         self, 
@@ -462,7 +494,7 @@ class FaceDataset(Dataset):
             try:
                 audio_feature, audio_offset = self.get_audio_file(wav_path, audio_offset)
                 _, audio_offset = self.get_audio_file_mel(wav_path, audio_offset)
-                audio_feature_mel = self.get_syncnet_input(video_path)
+                audio_feature_mel = get_syncnet_input(video_path)
             except Exception as e:
                 print(f"audio file error:{wav_path}")
                 print(e)
