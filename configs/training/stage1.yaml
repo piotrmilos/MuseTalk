@@ -17,6 +17,7 @@ cropping_jaw2edge_margin_std: 10  # Standard deviation for jaw-to-edge cropping
 crop_type: "crop_resize"  # Type of cropping method
 random_margin_method: "normal"  # Method for random margin generation
 num_backward_frames: 16  # Number of frames to use for backward pass in SyncNet
+memory_fraction: 0.9
 
 data:
   dataset_key: "HDTF"  # Dataset to use for training
@@ -82,7 +83,7 @@ solver:
 
 total_limit: 10  # Maximum number of checkpoints to keep
 save_model_epoch_interval: 250000  # Interval between model saves
-checkpointing_steps: 10000  # Number of steps between checkpoints
+checkpointing_steps: 1000  # Number of steps between checkpoints
 val_freq: 2000  # Frequency of validation
 
 seed: 41  # Random seed for reproducibility

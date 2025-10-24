@@ -1,3 +1,5 @@
+# Installation commands
+
 conda create -n MuseTalk python==3.10 -y
 conda run -n MuseTalk pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 --index-url https://download.pytorch.org/whl/cu118
 conda run -n MuseTalk pip install -r requirements.txt
@@ -17,6 +19,11 @@ unzip -o dataset/HDTF/source/audios.zip -d dataset/HDTF/source/
 unzip -o dataset/HDTF/source/audios_tiny.zip -d dataset/HDTF/source/
 unzip -o dataset/HDTF/source/poses.zip -d dataset/HDTF/source/
 unzip -o dataset/HDTF/source/videos.zip -d dataset/HDTF/source/
+
+# Commands to run various things
+
+We use conda in this project /opt/conda/envs/MuseTalk
+
 /opt/conda/envs/MuseTalk/bin/python -m scripts.preprocess --config ./configs/training/preprocess_small.yaml
 /opt/conda/envs/MuseTalk/bin/accelerate launch --config_file ./configs/training/gpu_3.yaml --main_process_port 29502 train.py --config ./configs/training/stage1.yaml 
 /opt/conda/envs/MuseTalk/bin/accelerate launch --config_file ./configs/training/gpu_3.yaml --main_process_port 29502 train.py --config ./configs/training/stage1.yaml >error_list.txt

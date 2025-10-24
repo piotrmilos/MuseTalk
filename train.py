@@ -62,6 +62,9 @@ def main(cfg):
         kwargs_handlers=[kwargs, process_group_kwargs],
     )
 
+    if 'memory_fraction' in cfg:
+        torch.cuda.set_per_process_memory_fraction(cfg.memory_fraction)
+
     # Make one log on every process with the configuration for debugging.
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
