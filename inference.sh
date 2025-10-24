@@ -68,5 +68,7 @@ if [ "$mode" = "realtime" ]; then
     --version $version_arg"
 fi
 
+echo $cmd_args
+
 # Run inference
 python3 -m $script_name $cmd_args

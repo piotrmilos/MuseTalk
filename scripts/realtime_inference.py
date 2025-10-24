@@ -236,13 +236,13 @@ class Avatar:
             self.idx = self.idx + 1
 
     @torch.no_grad()
-    def inference(self, audio_path, out_vid_name, fps, skip_save_images):
+    def inference(self, audio_path, out_vid_name, fps, skip_save_images, clip_right):
         os.makedirs(self.avatar_path + '/tmp', exist_ok=True)
         print("start inference")
         ############################################## extract audio feature ##############################################
         start_time = time.time()
         # Extract audio features
-        whisper_input_features, librosa_length = audio_processor.get_audio_feature(audio_path, weight_dtype=weight_dtype)
+        whisper_input_features, librosa_length = audio_processor.get_audio_feature(audio_path, weight_dtype=weight_dtype, clip_right=clip_right)
         whisper_chunks = audio_processor.get_whisper_chunk(
             whisper_input_features,
             device,
@@ -296,6 +296,13 @@ class Avatar:
             cmd_img2video = f"ffmpeg -y -v warning -r {fps} -f image2 -i {self.avatar_path}/tmp/%08d.png -vcodec libx264 -vf format=yuv420p -crf 18 {self.avatar_path}/temp.mp4"
             print(cmd_img2video)
             os.system(cmd_img2video)
+
+            cmd_1 = rf"mkdir -p /tmp/vid_dumps/{out_vid_name}/"
+            cmd_2 = rf'cp {self.avatar_path}/tmp/*png /tmp/vid_dumps/{out_vid_name}/'
+            print('cmd_1', cmd_1)
+            print('cmd_2', cmd_2)
+            os.system(cmd_1)
+            os.system(cmd_2)
 
             output_vid = os.path.join(self.video_out_path, out_vid_name + ".mp4")  # on
             cmd_combine_audio = f"ffmpeg -y -v warning -i {audio_path} -i {self.avatar_path}/temp.mp4 {output_vid}"
@@ -403,7 +410,13 @@ if __name__ == "__main__":
         audio_clips = inference_config[avatar_id]["audio_clips"]
         for audio_num, audio_path in audio_clips.items():
             print("Inferring using:", audio_path)
+            if "_" in audio_path:
+                clip_right = float(audio_path.split("_")[1])
+                audio_path = audio_path.split("_")[0]
+                print('clip_right:', clip_right)
+                
             avatar.inference(audio_path,
                            audio_num,
                            args.fps,
-                           args.skip_save_images)
+                           args.skip_save_images,
+                           clip_right=clip_right)
