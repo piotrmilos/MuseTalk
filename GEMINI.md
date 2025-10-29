@@ -3,6 +3,7 @@
 conda create -n MuseTalk python==3.10 -y
 conda run -n MuseTalk pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 --index-url https://download.pytorch.org/whl/cu118
 conda run -n MuseTalk pip install -r requirements.txt
+conda run -n MuseTalk pip install pip install decord
 conda run -n MuseTalk pip install --no-cache-dir -U openmim
 conda run -n MuseTalk mim install mmengine
 conda run -n MuseTalk mim install "mmcv==2.0.1"
@@ -25,10 +26,16 @@ unzip -o dataset/HDTF/source/videos.zip -d dataset/HDTF/source/
 We use conda in this project /opt/conda/envs/MuseTalk
 
 /opt/conda/envs/MuseTalk/bin/python -m scripts.preprocess --config ./configs/training/preprocess_small.yaml
+/opt/conda/envs/MuseTalk/bin/python -m scripts.preprocess --config ./configs/training/preprocess_small_test.yaml
 /opt/conda/envs/MuseTalk/bin/accelerate launch --config_file ./configs/training/gpu_3.yaml --main_process_port 29502 train.py --config ./configs/training/stage1.yaml 
 /opt/conda/envs/MuseTalk/bin/accelerate launch --config_file ./configs/training/gpu_3.yaml --main_process_port 29502 train.py --config ./configs/training/stage1.yaml >error_list.txt
 
-# probably instal tracker as well pip install wandb weave
+# probably install tracker as well pip install wandb weave
 # /opt/conda/envs/MuseTalk/bin/accelerate launch --config_file ./configs/training/gpu_3.yaml --main_process_port 29502 train.py --config ./configs/training/stage1.yaml
 
-/opt/conda/bin/npx https://github.com/google-gemini/gemini-cli
+/opt/conda/envs/MuseTalk/bin/accelerate launch --config_file ./configs/training/gpu_3.yaml --main_process_port 29502 train.py --config ./configs/training/stage2.yaml
+
+gemni
+
+
+python -m scripts.realtime_inference --inference_config ./configs/inference/realtime_small.yaml --result_dir ./results/abrakadabra --unet_model_path ./models/musetalkV15/unet.pth --unet_config ./models/musetalkV15/musetalk.json --version v15 --fps 25 --version v15

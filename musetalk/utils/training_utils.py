@@ -73,7 +73,10 @@ def initialize_models_and_optimizers(cfg, accelerator, weight_dtype):
     model_dict['unet'] = UNet2DConditionModel(**unet_config)
     
     if not cfg.random_init_unet:
-        pretrained_unet_path = os.path.join(cfg.pretrained_model_name_or_path, cfg.unet_sub_folder, "pytorch_model.bin")
+        if 'unet_params_path' in cfg:
+            pretrained_unet_path = cfg.unet_params_path
+        else:
+            pretrained_unet_path = os.path.join(cfg.pretrained_model_name_or_path, cfg.unet_sub_folder, "pytorch_model.bin")
         print(f"### Loading existing unet weights from {pretrained_unet_path}. ###")
         checkpoint = torch.load(pretrained_unet_path, map_location=accelerator.device)
         model_dict['unet'].load_state_dict(checkpoint)

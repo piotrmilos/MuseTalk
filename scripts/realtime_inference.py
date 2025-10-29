@@ -61,9 +61,9 @@ class Avatar:
         self.bbox_shift = bbox_shift
         # 根据版本设置不同的基础路径
         if args.version == "v15":
-            self.base_path = f"./results/{args.version}/avatars/{avatar_id}"
+            self.base_path = f"{args.result_dir}/{args.version}/avatars/{avatar_id}"
         else:  # v1
-            self.base_path = f"./results/avatars/{avatar_id}"
+            self.base_path = f"{args.result_dir}/avatars/{avatar_id}"
             
         self.avatar_path = self.base_path
         self.full_imgs_path = f"{self.avatar_path}/full_imgs"
@@ -297,12 +297,12 @@ class Avatar:
             print(cmd_img2video)
             os.system(cmd_img2video)
 
-            cmd_1 = rf"mkdir -p /tmp/vid_dumps/{out_vid_name}/"
-            cmd_2 = rf'cp {self.avatar_path}/tmp/*png /tmp/vid_dumps/{out_vid_name}/'
-            print('cmd_1', cmd_1)
-            print('cmd_2', cmd_2)
-            os.system(cmd_1)
-            os.system(cmd_2)
+            # cmd_1 = rf"mkdir -p /tmp/vid_dumps/{out_vid_name}/"
+            # cmd_2 = rf'cp {self.avatar_path}/tmp/*png /tmp/vid_dumps/{out_vid_name}/'
+            # print('cmd_1', cmd_1)
+            # print('cmd_2', cmd_2)
+            # os.system(cmd_1)
+            # os.system(cmd_2)
 
             output_vid = os.path.join(self.video_out_path, out_vid_name + ".mp4")  # on
             cmd_combine_audio = f"ffmpeg -y -v warning -i {audio_path} -i {self.avatar_path}/temp.mp4 {output_vid}"
@@ -312,6 +312,9 @@ class Avatar:
             os.remove(f"{self.avatar_path}/temp.mp4")
             shutil.rmtree(f"{self.avatar_path}/tmp")
             print(f"result is save to {output_vid}")
+        
+        exit(0)
+
         print("\n")
 
 
@@ -410,6 +413,7 @@ if __name__ == "__main__":
         audio_clips = inference_config[avatar_id]["audio_clips"]
         for audio_num, audio_path in audio_clips.items():
             print("Inferring using:", audio_path)
+            clip_right = 0.0
             if "_" in audio_path:
                 clip_right = float(audio_path.split("_")[1])
                 audio_path = audio_path.split("_")[0]
@@ -420,3 +424,4 @@ if __name__ == "__main__":
                            args.fps,
                            args.skip_save_images,
                            clip_right=clip_right)
+
