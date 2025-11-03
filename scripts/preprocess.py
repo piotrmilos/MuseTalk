@@ -13,6 +13,8 @@ from musetalk.utils.face_detection import FaceAlignment,LandmarksType
 from mmpose.apis import inference_topdown, init_model
 from mmpose.structures import merge_data_samples
 import sys
+import multiprocessing
+multiprocessing.set_start_method('spawn', force=True)
 
 def fast_check_ffmpeg():
     try:
@@ -316,9 +318,29 @@ def main(cfg):
     # 3. Extract audio
     clip_vid_list = os.listdir(cfg.video_audio_clip_root)
     extract_audio(cfg.video_audio_clip_root, cfg.video_audio_clip_root, clip_vid_list)
-    
+
     # 4. Generate video metadata
-    analyze_video(cfg.video_audio_clip_root, cfg.meta_root, clip_vid_list)
+    num_processes = 1
+    if num_processes==1:
+        print("This is a slow operation with poor GPU utilization consider multi-process version")
+        analyze_video(cfg.video_audio_clip_root, cfg.meta_root, clip_vid_list)
+    else:
+        print(f"Starting video analysis with {num_processes} processes...")
+        import multiprocessing
+        
+        vid_chunks = np.array_split(clip_vid_list, num_processes)
+        
+        processes = []
+        for i in range(num_processes):
+            chunk = vid_chunks[i].tolist()
+            p = multiprocessing.Process(
+                target=analyze_video, 
+                args=(cfg.video_audio_clip_root, cfg.meta_root, chunk)
+            )
+            processes.append(p)
+            p.start()
+        for p in processes:
+            p.join()
     
     # 5. Generate training and validation set lists
     generate_train_list(cfg)

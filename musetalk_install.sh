@@ -67,6 +67,9 @@ huggingface-cli download yzd-v/DWPose --local-dir models/dwpose --include "dw-ll
 huggingface-cli download ByteDance/LatentSync --local-dir models/syncnet --include "latentsync_syncnet.pt"
 
 
+gdown --id 154JgKpzCPW82qINcVieuPH3fZ2e0P812 -O models/face-parse-bisent/79999_iter.pth
+curl -L https://download.pytorch.org/models/resnet18-5c106cde.pth -o models/face-parse-bisent/resnet18-5c106cde.pth
+
 # 7. Download and extract dataset
 echo "Downloading and extracting dataset..."
 huggingface-cli download global-optima-research/HDTF --repo-type dataset --local-dir dataset/HDTF/source

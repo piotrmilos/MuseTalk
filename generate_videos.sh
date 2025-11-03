@@ -1,10 +1,14 @@
 #!/bin/bash
 
 # --- Configuration ---
-CHECKPOINT_DIR="/home/pmilos_google_com/MuseTalk/first_long_experiment/stage1/test"
-CHECKPOINT_DIR="/home/pmilos_google_com/MuseTalk/exp_out/stage1/test"
-# CHECKPOINT_DIR="/home/pmilos_google_com/MuseTalk/exp_out/stage2/test"
-RESULT_DIR_BASE="/home/pmilos_google_com/MuseTalk/results/polished-elevator"
+
+# CHECKPOINT_DIR="/home/pmilos_google_com/MuseTalk/first_long_experiment/stage1/test"
+# CHECKPOINT_DIR="/home/pmilos_google_com/MuseTalk/exp_out/stage1/test"
+# # CHECKPOINT_DIR="/home/pmilos_google_com/MuseTalk/exp_out/stage2/test"
+# RESULT_DIR_BASE="/home/pmilos_google_com/MuseTalk/results/polished-elevator"
+
+: ${CHECKPOINT_DIR:?Warning: CHECKPOINT_DIR is not set or is empty. Exiting.}
+: ${RESULT_DIR_BASE:?Warning: CHECKPOINT_DIR is not set or is empty. Exiting.}
 
 # Find all .pth files, sort them numerically (for epochs), and loop through them
 find "$CHECKPOINT_DIR" -name "*.pth" | sort -V | while read -r checkpoint_path; do
@@ -25,7 +29,7 @@ find "$CHECKPOINT_DIR" -name "*.pth" | sort -V | while read -r checkpoint_path; 
     echo "⏳ Output directory $result_dir not found. Starting generation for checkpoint $checkpoint_name..."
 
     # Define the full command for clarity
-    COMMAND="/opt/conda/envs/MuseTalk/bin/python -m scripts.realtime_inference \
+    COMMAND="python -m scripts.realtime_inference \
         --inference_config ./configs/inference/realtime_small.yaml \
         --result_dir $result_dir \
         --unet_model_path $checkpoint_path \
@@ -37,7 +41,7 @@ find "$CHECKPOINT_DIR" -name "*.pth" | sort -V | while read -r checkpoint_path; 
     echo "Executing: $COMMAND"
 
     # Execute the command
-    /opt/conda/envs/MuseTalk/bin/python -m scripts.realtime_inference --inference_config ./configs/inference/realtime_small.yaml --result_dir "$result_dir" --unet_model_path "$checkpoint_path" --unet_config ./models/musetalkV15/musetalk.json --version v15 --fps 25
+    python -m scripts.realtime_inference --inference_config ./configs/inference/realtime_small.yaml --result_dir "$result_dir" --unet_model_path "$checkpoint_path" --unet_config ./models/musetalkV15/musetalk.json --version v15 --fps 25
     
     echo "--- Finished generation for $checkpoint_name ---"
 done
