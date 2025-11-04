@@ -11,7 +11,11 @@ wandb login
 python -m scripts.preprocess --config ./configs/training/preprocess.yaml <--- the actual preprocess, below small tests. This is a slow operation.
 python -m scripts.preprocess --config ./configs/training/preprocess_small.yaml
 python -m scripts.preprocess --config ./configs/training/preprocess_small_test.yaml
-accelerate launch --config_file ./configs/training/gpu_3.yaml --main_process_port 29502 train.py --config ./configs/training/stage1.yaml 
+accelerate launch --config_file ./configs/training/gpu_3.yaml --main_process_port 29502 train.py --config ./configs/training/stage1.yaml # single GPU training
+
+accelerate launch --config_file ./configs/training/gpu_no_deepspeed.yaml --main_process_port 29502 train.py --config ./configs/training/stage1.yaml # two gpus. It is not very fast might need more love.
+
+accelerate launch --config_file ./configs/training/gpu.yaml --main_process_port 29502 train.py --config ./configs/training/stage1.yaml
 
 # /opt/conda/envs/MuseTalk/bin/accelerate launch --config_file ./configs/training/gpu_3.yaml --main_process_port 29502 train.py --config ./configs/training/stage1.yaml
 
