@@ -336,6 +336,7 @@ class FaceDataset(Dataset):
     def __getitem__(self, idx):
         attempts = 0
         while attempts < self.max_attempts:
+            meta_path = None
             try:
                 meta_path = random.sample(self.meta_paths, k=1)[0]
                 with open(meta_path, 'r') as f:
@@ -379,10 +380,24 @@ class FaceDataset(Dataset):
                 time.sleep(0.1)
                 continue
 
-            shift_landmarks, bbox_list_union, face_shapes = shift_landmarks_to_face_coordinates(
-                landmark_list, 
-                bbox_list
-            )
+            # TODO(pmilos): This is a very dirty way of doing this.
+            # I'd be great to move it to preprocssing.
+            cache_dir = "/tmp/cache"
+            import pickle
+            os.makedirs(cache_dir, exist_ok=True)
+            file_name = meta_path.split('/')[-1].split('.')[0]
+            cache_file_path = os.path.join(cache_dir, f"{file_name}.pkl")
+
+            if os.path.exists(cache_file_path):
+                shift_landmarks, bbox_list_union, face_shapes = pickle.load(open(cache_file_path, "rb"))
+            else:
+                shift_landmarks, bbox_list_union, face_shapes = shift_landmarks_to_face_coordinates(
+                    landmark_list, 
+                    bbox_list
+                )
+                pickle.dump((shift_landmarks, bbox_list_union, face_shapes), open(cache_file_path, "wb"))
+
+
             if self.contorl_face_min_size and face_shapes[0][0] < self.min_face_size:
                 print(f"video {video_path} has face size {face_shapes[0][0]} less than minimum required {self.min_face_size}")
                 attempts += 1

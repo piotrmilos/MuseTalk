@@ -1,11 +1,16 @@
 #!/bin/bash
 
+
+OBSOLETE, now use generate_videos.py
+
 # --- Configuration ---
 
 # CHECKPOINT_DIR="/home/pmilos_google_com/MuseTalk/first_long_experiment/stage1/test"
-# CHECKPOINT_DIR="/home/pmilos_google_com/MuseTalk/exp_out/stage1/test"
+CHECKPOINT_DIR="/home/pmilos_google_com/MuseTalk/exp_out/stage1/test"
 # # CHECKPOINT_DIR="/home/pmilos_google_com/MuseTalk/exp_out/stage2/test"
 # RESULT_DIR_BASE="/home/pmilos_google_com/MuseTalk/results/polished-elevator"
+RESULT_DIR_BASE="/home/pmilos_google_com/MuseTalk/results/toasty-resonance"
+RESULT_DIR_BASE="/home/pmilos_google_com/MuseTalk/results/sparkling-gorge"
 
 : ${CHECKPOINT_DIR:?Warning: CHECKPOINT_DIR is not set or is empty. Exiting.}
 : ${RESULT_DIR_BASE:?Warning: CHECKPOINT_DIR is not set or is empty. Exiting.}
