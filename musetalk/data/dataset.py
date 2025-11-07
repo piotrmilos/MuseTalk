@@ -12,12 +12,34 @@ import json
 import math
 from decord import AudioReader, VideoReader
 from decord.ndarray import cpu
+import cv2
 
 from musetalk.data.sample_method import get_src_idx, shift_landmarks_to_face_coordinates, resize_landmark 
 from musetalk.data import audio 
 from musetalk.utils.audio_utils import ensure_wav
 
 syncnet_mel_step_size = math.ceil(16 / 5 * 16)  # latentsync
+
+class OpenCVVideoReaderWrapper:
+
+    def __init__(self, video_path):
+        self.video_path = video_path
+        self.handle = cv2.VideoCapture(video_path)
+        # TODO(pmilos): we do not call cap.release, a potential memory leak?
+
+
+    def __len__(self):
+        return int(self.handle.get(cv2.CAP_PROP_FRAME_COUNT))
+    
+    def __getitem__(self, idx):
+        self.handle.set(cv2.CAP_PROP_POS_FRAMES, idx)
+        _, frame = self.handle.read()
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        return frame
+    
+
+
+
 
 def get_syncnet_input(video_path):
     """Get SyncNet input features
@@ -364,7 +386,8 @@ class FaceDataset(Dataset):
                 continue
 
             try:
-                cap = VideoReader(video_path, fault_tol=1, ctx=cpu(0))
+                # cap = VideoReader(video_path, fault_tol=1, ctx=cpu(0))
+                cap = OpenCVVideoReaderWrapper(video_path)
                 total_frames = len(cap)
                 assert total_frames == len(landmark_list)
                 assert total_frames == len(bbox_list)
@@ -432,7 +455,8 @@ class FaceDataset(Dataset):
             # Get reference images
             ref_imgs = []
             for src_idx in src_idx_list:
-                imSrc = Image.fromarray(cap[src_idx].asnumpy())
+                # imSrc = Image.fromarray(cap[src_idx].asnumpy())
+                imSrc = Image.fromarray(cap[src_idx])
                 bbox_s = bbox_list_union[src_idx]
                 imSrc, _, _ = self.crop_resize_img(
                     imSrc,
@@ -458,7 +482,8 @@ class FaceDataset(Dataset):
             target_face_valid_flag = True
             
             for drive_idx in drive_idx_list:
-                imSameID = Image.fromarray(cap[drive_idx].asnumpy())
+                # imSameID = Image.fromarray(cap[drive_idx].asnumpy())
+                imSameID = Image.fromarray(cap[drive_idx])
                 bbox_s = bbox_list_union[drive_idx]
                 imSameID, _ , mask_scaled_factor = self.crop_resize_img(
                     imSameID, 

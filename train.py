@@ -588,8 +588,11 @@ def main(cfg):
     accelerator.end_training()
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, default="./configs/training/stage2.yaml")
-    args = parser.parse_args()
-    config = OmegaConf.load(args.config)
+    cfg_cli = OmegaConf.from_cli()
+    # it is required to pass yaml config
+    cfg_yaml = OmegaConf.load(cfg_cli['--config'])
+
+    config = OmegaConf.merge(cfg_yaml, cfg_cli)
+
+
     main(config)
