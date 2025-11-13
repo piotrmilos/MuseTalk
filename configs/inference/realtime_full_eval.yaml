@@ -1,0 +1,49 @@
+avator_1:
+ preparation: True
+ video_path: "data/video/yongen.mp4"
+ audio_clips:
+    yongen: "data/audio/yongen.wav"
+    eng: "data/audio/eng.wav"
+    clip000_RD_Radio30_000: "data/audio/clip000_RD_Radio30_000.wav"
+    clip009_WRA_CathyMcMorrisRodgers1_000: "data/audio/clip009_WRA_CathyMcMorrisRodgers1_000.wav"
+    polish-tongtwister: "data/audio/polish-tongtwister.wav"
+
+avator_2:
+ preparation: True
+ video_path: "data/video/sun.mp4"
+ audio_clips:
+    yongen: "data/audio/yongen.wav"
+    eng: "data/audio/eng.wav"
+    clip000_RD_Radio30_000: "data/audio/clip000_RD_Radio30_000.wav"
+    clip009_WRA_CathyMcMorrisRodgers1_000: "data/audio/clip009_WRA_CathyMcMorrisRodgers1_000.wav"
+    polish-tongtwister: "data/audio/polish-tongtwister.wav"
+
+avator_3:
+ preparation: True
+ video_path: "data/video/clip000_RD_Radio30_000.mp4"
+ audio_clips:
+    yongen: "data/audio/yongen.wav"
+    eng: "data/audio/eng.wav"
+    clip000_RD_Radio30_000: "data/audio/clip000_RD_Radio30_000.wav"
+    clip009_WRA_CathyMcMorrisRodgers1_000: "data/audio/clip009_WRA_CathyMcMorrisRodgers1_000.wav"
+    polish-tongtwister: "data/audio/polish-tongtwister.wav"
+
+avator_4:
+ preparation: True
+ video_path: "data/video/clip009_WRA_CathyMcMorrisRodgers1_000.mp4"
+ audio_clips:
+    yongen: "data/audio/yongen.wav"
+    eng: "data/audio/eng.wav"
+    clip000_RD_Radio30_000: "data/audio/clip000_RD_Radio30_000.wav"
+    clip009_WRA_CathyMcMorrisRodgers1_000: "data/audio/clip009_WRA_CathyMcMorrisRodgers1_000.wav"
+    polish-tongtwister: "data/audio/polish-tongtwister.wav"
+
+avator_5:
+ preparation: True
+ video_path: "data/video/jarek-shirt.mp4"
+ audio_clips:
+    yongen: "data/audio/yongen.wav"
+    eng: "data/audio/eng.wav"
+    clip000_RD_Radio30_000: "data/audio/clip000_RD_Radio30_000.wav"
+    clip009_WRA_CathyMcMorrisRodgers1_000: "data/audio/clip009_WRA_CathyMcMorrisRodgers1_000.wav"
+    polish-tongtwister: "data/audio/polish-tongtwister.wav"

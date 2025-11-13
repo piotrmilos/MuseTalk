@@ -1,25 +1,12 @@
 #!/usr/bin/env python3
-import os
-import time
 import subprocess
 import re
 from pathlib import Path
 
-# --- Configuration ---
 CHECKPOINT_DIR = "/home/pmilos_google_com/MuseTalk/exp_out/"
 RESULT_DIR_BASE = "/home/pmilos_google_com/MuseTalk/results"
 
-# --- Validation ---
-if not CHECKPOINT_DIR:
-    raise ValueError("Warning: CHECKPOINT_DIR is not set or is empty. Exiting.")
-if not RESULT_DIR_BASE:
-    raise ValueError("Warning: RESULT_DIR_BASE is not set or is empty. Exiting.")
-
 def natural_sort_key(s):
-    """
-    Key function for natural sorting (mimics 'sort -V' behavior).
-    Splits string into text and number chunks.
-    """
     return [int(text) if text.isdigit() else text.lower()
             for text in re.split(r'(\d+)', str(s))]
 
@@ -43,7 +30,7 @@ def main():
 
         command = [
             "python", "-m", "scripts.realtime_inference",
-            "--inference_config", "./configs/inference/realtime_small.yaml",
+            "--inference_config", "./configs/inference/realtime_full_eval.yaml",
             "--result_dir", str(result_dir),
             "--unet_model_path", str(checkpoint_path),
             "--unet_config", "./models/musetalkV15/musetalk.json",

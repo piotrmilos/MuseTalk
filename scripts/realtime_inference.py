@@ -312,8 +312,6 @@ class Avatar:
             os.remove(f"{self.avatar_path}/temp.mp4")
             shutil.rmtree(f"{self.avatar_path}/tmp")
             print(f"result is save to {output_vid}")
-        
-        exit(0)
 
         print("\n")
 
@@ -413,15 +411,15 @@ if __name__ == "__main__":
         audio_clips = inference_config[avatar_id]["audio_clips"]
         for audio_num, audio_path in audio_clips.items():
             print("Inferring using:", audio_path)
-            clip_right = 0.0
-            if "_" in audio_path:
-                clip_right = float(audio_path.split("_")[1])
-                audio_path = audio_path.split("_")[0]
-                print('clip_right:', clip_right)
+            # clip_right = 0.0
+            # if "_" in audio_path:
+            #     clip_right = float(audio_path.split("_")[1])
+            #     audio_path = audio_path.split("_")[0]
+            #     print('clip_right:', clip_right)
                 
             avatar.inference(audio_path,
                            audio_num,
                            args.fps,
                            args.skip_save_images,
-                           clip_right=clip_right)
+                           clip_right=0.0)
 
