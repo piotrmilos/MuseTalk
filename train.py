@@ -47,20 +47,35 @@ logger = get_logger(__name__, log_level="INFO")
 warnings.filterwarnings("ignore")
 check_min_version("0.10.0.dev0")
 
+def should_checkpoint(step, cfg):
+    assert ("checkpointing_steps" in cfg) != ("checkpointing_schedule" in cfg), "One and only one options should be present."
+
+    if "checkpointing_steps" in cfg:
+        return step % cfg.checkpointing_steps == 0
+    else: # 
+        return step in cfg.checkpointing_schedule
+
 def main(cfg):
     exp_name = cfg.exp_name
     save_dir = f"{cfg.output_dir}/{exp_name}"
-    os.makedirs(save_dir, exist_ok=True)
+    try:
+        os.makedirs(save_dir, exist_ok=False)
+    except FileExistsError:
+        print(rf"Directory {save_dir} already exists. Exiting.\n")
+        exit(1)
 
     kwargs = DistributedDataParallelKwargs()
     process_group_kwargs = InitProcessGroupKwargs(
         timeout=timedelta(seconds=5400))
     accelerator = Accelerator(
         gradient_accumulation_steps=cfg.solver.gradient_accumulation_steps,
-        log_with=["tensorboard", LoggerType.TENSORBOARD],
+        log_with=["tensorboard", LoggerType.TENSORBOARD, 'wandb'], # need to WANDB_API_KEY
         project_dir=os.path.join(save_dir, "./tensorboard"),
         kwargs_handlers=[kwargs, process_group_kwargs],
     )
+
+    if 'memory_fraction' in cfg:
+        torch.cuda.set_per_process_memory_fraction(cfg.memory_fraction)
 
     # Make one log on every process with the configuration for debugging.
     logging.basicConfig(
@@ -517,7 +532,7 @@ def main(cfg):
                         print(f"An error occurred during validation: {e}")
 
                 # Save checkpoint if needed
-                if global_step % cfg.checkpointing_steps == 0:
+                if should_checkpoint(global_step, cfg):
                     save_path = os.path.join(save_dir, f"checkpoint-{global_step}")
                     try:
                         start_time = time.time()
@@ -573,8 +588,11 @@ def main(cfg):
     accelerator.end_training()
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, default="./configs/training/stage2.yaml")
-    args = parser.parse_args()
-    config = OmegaConf.load(args.config)
+    cfg_cli = OmegaConf.from_cli()
+    # it is required to pass yaml config
+    cfg_yaml = OmegaConf.load(cfg_cli['--config'])
+
+    config = OmegaConf.merge(cfg_yaml, cfg_cli)
+
+
     main(config)

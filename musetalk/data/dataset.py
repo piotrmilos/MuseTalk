@@ -10,14 +10,79 @@ import librosa
 import time
 import json
 import math
-from decord import AudioReader, VideoReader
-from decord.ndarray import cpu
+# from decord import AudioReader, VideoReader
+# from decord.ndarray import cpu
+import cv2
 
 from musetalk.data.sample_method import get_src_idx, shift_landmarks_to_face_coordinates, resize_landmark 
 from musetalk.data import audio 
 from musetalk.utils.audio_utils import ensure_wav
 
 syncnet_mel_step_size = math.ceil(16 / 5 * 16)  # latentsync
+
+class OpenCVVideoReaderWrapper:
+
+    def __init__(self, video_path):
+        self.video_path = video_path
+        self.handle = cv2.VideoCapture(video_path)
+        # TODO(pmilos): we do not call cap.release, a potential memory leak?. 
+        # Seems not to be a problem in practice for >40h runs. Ignoring for the moment
+
+
+    def __len__(self):
+        return int(self.handle.get(cv2.CAP_PROP_FRAME_COUNT))
+    
+    def __getitem__(self, idx):
+        self.handle.set(cv2.CAP_PROP_POS_FRAMES, idx)
+        _, frame = self.handle.read()
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        return frame
+    
+
+
+
+
+def get_syncnet_input(video_path):
+    """Get SyncNet input features
+    
+    Args:
+        video_path: Video file path
+        
+    Returns:
+        ndarray: SyncNet input features
+    """
+    wav, _ = librosa.load(video_path, sr=16000, mono=True)
+    original_mel = audio.melspectrogram(wav)
+    original_mel_T = original_mel.T
+
+    return original_mel_T
+    
+
+
+    # the old version with decord (unsupported in google3) and caching due to memory leak
+    # caching is due to some memory leak. Perhaps can be removed
+    # cache_path = os.path.splitext(video_path)[0] + ".npy"
+    # if os.path.exists(cache_path):
+    #     # print('loading from cache')
+    #     try:
+    #         original_mel_T = np.load(cache_path)
+    #         if original_mel_T is not None:
+    #             return original_mel_T
+    #     except Exception as e:
+    #         print(f"Failed to load cache file {cache_path}: {e}")
+
+    # # print('video_path:', video_path)
+    # ar = AudioReader(video_path, sample_rate=16000)
+    # original_mel = audio.melspectrogram(ar[:].asnumpy().squeeze(0))
+    # original_mel_T = original_mel.T
+    
+    # # print('saving to cache')
+    # try:
+    #     np.save(cache_path, original_mel_T)
+    # except Exception as e:
+    #     print(f"Failed to save cache file {cache_path}: {e}")
+
+    # return original_mel_T
 
 
 class FaceDataset(Dataset):
@@ -176,7 +241,7 @@ class FaceDataset(Dataset):
         audio_input_librosa, sampling_rate = librosa.load(wav_path_converted, sr=16000)
         assert sampling_rate == 16000
 
-        while start_index >= 25 * 30:
+        while start_index >= 25 * 30: # pmilos: this looks like a bug
             audio_input = audio_input_librosa[16000*30:]
             start_index -= 25 * 30
         if start_index + 2 * 25 >= 25 * 30:
@@ -242,18 +307,18 @@ class FaceDataset(Dataset):
         end_idx = start_idx + syncnet_mel_step_size
         return spec[start_idx: end_idx, :]
 
-    def get_syncnet_input(self, video_path):
-        """Get SyncNet input features
+    # def get_syncnet_input(self, video_path):
+    #     """Get SyncNet input features
         
-        Args:
-            video_path: Video file path
+    #     Args:
+    #         video_path: Video file path
             
-        Returns:
-            ndarray: SyncNet input features
-        """
-        ar = AudioReader(video_path, sample_rate=16000)
-        original_mel = audio.melspectrogram(ar[:].asnumpy().squeeze(0))
-        return original_mel.T
+    #     Returns:
+    #         ndarray: SyncNet input features
+    #     """
+    #     ar = AudioReader(video_path, sample_rate=16000)
+    #     original_mel = audio.melspectrogram(ar[:].asnumpy().squeeze(0))
+    #     return original_mel.T
 
     def get_resized_mouth_mask(
         self, 
@@ -304,6 +369,7 @@ class FaceDataset(Dataset):
     def __getitem__(self, idx):
         attempts = 0
         while attempts < self.max_attempts:
+            meta_path = None
             try:
                 meta_path = random.sample(self.meta_paths, k=1)[0]
                 with open(meta_path, 'r') as f:
@@ -331,7 +397,8 @@ class FaceDataset(Dataset):
                 continue
 
             try:
-                cap = VideoReader(video_path, fault_tol=1, ctx=cpu(0))
+                # cap = VideoReader(video_path, fault_tol=1, ctx=cpu(0))
+                cap = OpenCVVideoReaderWrapper(video_path)
                 total_frames = len(cap)
                 assert total_frames == len(landmark_list)
                 assert total_frames == len(bbox_list)
@@ -347,10 +414,24 @@ class FaceDataset(Dataset):
                 time.sleep(0.1)
                 continue
 
-            shift_landmarks, bbox_list_union, face_shapes = shift_landmarks_to_face_coordinates(
-                landmark_list, 
-                bbox_list
-            )
+            # TODO(pmilos): This is a very dirty way of doing this.
+            # I'd be great to move it to preprocssing.
+            cache_dir = "/tmp/cache"
+            import pickle
+            os.makedirs(cache_dir, exist_ok=True)
+            file_name = meta_path.split('/')[-1].split('.')[0]
+            cache_file_path = os.path.join(cache_dir, f"{file_name}.pkl")
+
+            if os.path.exists(cache_file_path):
+                shift_landmarks, bbox_list_union, face_shapes = pickle.load(open(cache_file_path, "rb"))
+            else:
+                shift_landmarks, bbox_list_union, face_shapes = shift_landmarks_to_face_coordinates(
+                    landmark_list, 
+                    bbox_list
+                )
+                pickle.dump((shift_landmarks, bbox_list_union, face_shapes), open(cache_file_path, "wb"))
+
+
             if self.contorl_face_min_size and face_shapes[0][0] < self.min_face_size:
                 print(f"video {video_path} has face size {face_shapes[0][0]} less than minimum required {self.min_face_size}")
                 attempts += 1
@@ -385,7 +466,8 @@ class FaceDataset(Dataset):
             # Get reference images
             ref_imgs = []
             for src_idx in src_idx_list:
-                imSrc = Image.fromarray(cap[src_idx].asnumpy())
+                # imSrc = Image.fromarray(cap[src_idx].asnumpy())
+                imSrc = Image.fromarray(cap[src_idx])
                 bbox_s = bbox_list_union[src_idx]
                 imSrc, _, _ = self.crop_resize_img(
                     imSrc,
@@ -411,7 +493,8 @@ class FaceDataset(Dataset):
             target_face_valid_flag = True
             
             for drive_idx in drive_idx_list:
-                imSameID = Image.fromarray(cap[drive_idx].asnumpy())
+                # imSameID = Image.fromarray(cap[drive_idx].asnumpy())
+                imSameID = Image.fromarray(cap[drive_idx])
                 bbox_s = bbox_list_union[drive_idx]
                 imSameID, _ , mask_scaled_factor = self.crop_resize_img(
                     imSameID, 
@@ -462,7 +545,7 @@ class FaceDataset(Dataset):
             try:
                 audio_feature, audio_offset = self.get_audio_file(wav_path, audio_offset)
                 _, audio_offset = self.get_audio_file_mel(wav_path, audio_offset)
-                audio_feature_mel = self.get_syncnet_input(video_path)
+                audio_feature_mel = get_syncnet_input(video_path)
             except Exception as e:
                 print(f"audio file error:{wav_path}")
                 print(e)

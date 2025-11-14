@@ -13,6 +13,8 @@ from musetalk.utils.face_detection import FaceAlignment,LandmarksType
 from mmpose.apis import inference_topdown, init_model
 from mmpose.structures import merge_data_samples
 import sys
+import multiprocessing
+multiprocessing.set_start_method('spawn', force=True)
 
 def fast_check_ffmpeg():
     try:
@@ -240,6 +242,9 @@ def analyze_video(org_path: str, dst_path: str, vid_list: List[str]) -> None:
             # process
             try:
                 cap = decord.VideoReader(vid_path, fault_tol=1)
+                # pmilos decord is not present in google3. 
+                # OpenCVVideoReaderWrapper can mostly probably be used here (it works dataset.py)
+                # I did not test it though, so I do not change.
             except Exception as e:
                 print(e)
                 continue
@@ -300,7 +305,7 @@ def main(cfg):
     os.makedirs(os.path.dirname(cfg.video_clip_file_list_val), exist_ok=True)
 
     vid_list = os.listdir(cfg.video_root_raw)
-    sorted_vid_list = sorted(vid_list)
+    sorted_vid_list = sorted(vid_list)[:int(cfg.number_to_process)]
  
     # Save video file list
     with open(cfg.video_file_list, 'w') as file:
@@ -311,14 +316,34 @@ def main(cfg):
     convert_video(cfg.video_root_raw, cfg.video_root_25fps, sorted_vid_list)
     
     # 2. Segment videos into 30-second clips
-    segment_video(cfg.video_root_25fps, cfg.video_audio_clip_root, vid_list, segment_duration=cfg.clip_len_second)
+    segment_video(cfg.video_root_25fps, cfg.video_audio_clip_root, sorted_vid_list, segment_duration=cfg.clip_len_second)
     
     # 3. Extract audio
     clip_vid_list = os.listdir(cfg.video_audio_clip_root)
     extract_audio(cfg.video_audio_clip_root, cfg.video_audio_clip_root, clip_vid_list)
-    
+
     # 4. Generate video metadata
-    analyze_video(cfg.video_audio_clip_root, cfg.meta_root, clip_vid_list)
+    num_processes = 1
+    if num_processes==1:
+        print("This is a slow operation with poor GPU utilization consider multi-process version")
+        analyze_video(cfg.video_audio_clip_root, cfg.meta_root, clip_vid_list)
+    else:
+        print(f"Starting video analysis with {num_processes} processes...")
+        import multiprocessing
+        
+        vid_chunks = np.array_split(clip_vid_list, num_processes)
+        
+        processes = []
+        for i in range(num_processes):
+            chunk = vid_chunks[i].tolist()
+            p = multiprocessing.Process(
+                target=analyze_video, 
+                args=(cfg.video_audio_clip_root, cfg.meta_root, chunk)
+            )
+            processes.append(p)
+            p.start()
+        for p in processes:
+            p.join()
     
     # 5. Generate training and validation set lists
     generate_train_list(cfg)

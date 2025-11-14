@@ -2,6 +2,7 @@ exp_name: 'test'  # Name of the experiment
 output_dir: './exp_out/stage2/'  # Directory to save experiment outputs
 unet_sub_folder: musetalk  # Subfolder name for UNet model
 random_init_unet: False  # Whether to randomly initialize UNet (stage1) or use pretrained weights (stage2)
+#unet_params_path: "exp_out/stage1/test/unet-42000.pth"
 whisper_path: "./models/whisper"  # Path to the Whisper model
 pretrained_model_name_or_path: "./models"  # Path to pretrained models
 resume_from_checkpoint: True  # Whether to resume training from a checkpoint
