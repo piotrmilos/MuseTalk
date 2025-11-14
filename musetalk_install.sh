@@ -43,7 +43,7 @@ conda activate MuseTalk
 echo "Installing Python dependencies..."
 pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 --index-url https://download.pytorch.org/whl/cu118
 pip install -r requirements.txt
-pip install  decord
+pip install  decord # Note that decord is not removed except from preprocessing
 pip install  -U openmim
 pip install  "huggingface_hub[cli]" gdown
 pip install huggingface_hub

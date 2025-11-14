@@ -242,6 +242,9 @@ def analyze_video(org_path: str, dst_path: str, vid_list: List[str]) -> None:
             # process
             try:
                 cap = decord.VideoReader(vid_path, fault_tol=1)
+                # pmilos decord is not present in google3. 
+                # OpenCVVideoReaderWrapper can mostly probably be used here (it works dataset.py)
+                # I did not test it though, so I do not change.
             except Exception as e:
                 print(e)
                 continue

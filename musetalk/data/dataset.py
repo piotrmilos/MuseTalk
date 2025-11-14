@@ -10,8 +10,8 @@ import librosa
 import time
 import json
 import math
-from decord import AudioReader, VideoReader
-from decord.ndarray import cpu
+# from decord import AudioReader, VideoReader
+# from decord.ndarray import cpu
 import cv2
 
 from musetalk.data.sample_method import get_src_idx, shift_landmarks_to_face_coordinates, resize_landmark 
@@ -25,7 +25,8 @@ class OpenCVVideoReaderWrapper:
     def __init__(self, video_path):
         self.video_path = video_path
         self.handle = cv2.VideoCapture(video_path)
-        # TODO(pmilos): we do not call cap.release, a potential memory leak?
+        # TODO(pmilos): we do not call cap.release, a potential memory leak?. 
+        # Seems not to be a problem in practice for >40h runs. Ignoring for the moment
 
 
     def __len__(self):
@@ -50,28 +51,38 @@ def get_syncnet_input(video_path):
     Returns:
         ndarray: SyncNet input features
     """
-    cache_path = os.path.splitext(video_path)[0] + ".npy"
-    if os.path.exists(cache_path):
-        # print('loading from cache')
-        try:
-            original_mel_T = np.load(cache_path)
-            if original_mel_T is not None:
-                return original_mel_T
-        except Exception as e:
-            print(f"Failed to load cache file {cache_path}: {e}")
-
-    # print('video_path:', video_path)
-    ar = AudioReader(video_path, sample_rate=16000)
-    original_mel = audio.melspectrogram(ar[:].asnumpy().squeeze(0))
+    wav, _ = librosa.load(video_path, sr=16000, mono=True)
+    original_mel = audio.melspectrogram(wav)
     original_mel_T = original_mel.T
-    
-    # print('saving to cache')
-    try:
-        np.save(cache_path, original_mel_T)
-    except Exception as e:
-        print(f"Failed to save cache file {cache_path}: {e}")
 
     return original_mel_T
+    
+
+
+    # the old version with decord (unsupported in google3) and caching due to memory leak
+    # caching is due to some memory leak. Perhaps can be removed
+    # cache_path = os.path.splitext(video_path)[0] + ".npy"
+    # if os.path.exists(cache_path):
+    #     # print('loading from cache')
+    #     try:
+    #         original_mel_T = np.load(cache_path)
+    #         if original_mel_T is not None:
+    #             return original_mel_T
+    #     except Exception as e:
+    #         print(f"Failed to load cache file {cache_path}: {e}")
+
+    # # print('video_path:', video_path)
+    # ar = AudioReader(video_path, sample_rate=16000)
+    # original_mel = audio.melspectrogram(ar[:].asnumpy().squeeze(0))
+    # original_mel_T = original_mel.T
+    
+    # # print('saving to cache')
+    # try:
+    #     np.save(cache_path, original_mel_T)
+    # except Exception as e:
+    #     print(f"Failed to save cache file {cache_path}: {e}")
+
+    # return original_mel_T
 
 
 class FaceDataset(Dataset):

@@ -80,6 +80,8 @@ If you encounter a `ModuleNotFoundError` for `decord`, install it with:
 ```bash
 pip install decord
 ```
+Note that decord is removed except from preprocessing.
+
 
 ## 9. Perhpas install experiment tracker
 ask the user or the key and put it pernamently to .bashrc (or where is appropriate)
