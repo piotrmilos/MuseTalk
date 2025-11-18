@@ -13,9 +13,9 @@ python -m scripts.preprocess --config ./configs/training/preprocess.yaml # <--- 
 python -m scripts.preprocess --config ./configs/training/preprocess_small.yaml
 python -m scripts.preprocess --config ./configs/training/preprocess_small_test.yaml
 
-accelerate launch --config_file ./configs/training/gpu_3.yaml --main_process_port 29502 train.py --config ./configs/training/stage1.yaml # single GPU training
-accelerate launch --config_file ./configs/training/gpu_no_deepspeed.yaml --main_process_port 29502 train.py --config ./configs/training/stage1.yaml # two gpus. It is not very fast might need more love.
-accelerate launch --config_file ./configs/training/gpu.yaml --main_process_port 29502 train.py --config ./configs/training/stage1.yaml # deepspeed does not work at the moment
+accelerate launch --config_file ./configs/training/gpu_3.yaml --main_process_port 29502 train.py --config=./configs/training/stage1.yaml output_dir=./exp_out/PUT_DIR_HERE # single GPU training
+accelerate launch --config_file ./configs/training/gpu_no_deepspeed.yaml --main_process_port 29502 train.py --config=./configs/training/stage1.yaml # two gpus. 
+accelerate launch --config_file ./configs/training/gpu.yaml --main_process_port 29502 train.py --config=./configs/training/stage1.yaml # deepspeed does not work at the moment
 
 accelerate launch --config_file ./configs/training/gpu_3.yaml --main_process_port 29502 train.py --config ./configs/training/stage2.yaml # stage 2 training.
 
